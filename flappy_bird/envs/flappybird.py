@@ -18,9 +18,8 @@ class FlappyBird(gym.Env):
 		Type: Box(2)
 		Num			Observation			Min					Max
 		0			Bird y				0					screen height
-		1			Safe Space height	100					100
-		2			Safe Space X		0					screen width + 20
-		3 			Safe Space Y		50					screen size - 60
+		1			Safe Space X		0					screen width + 20
+		2 			Safe Space Y		50					screen size - 60
 
 	Actions:
 		Type: Discrete(2)
@@ -33,10 +32,9 @@ class FlappyBird(gym.Env):
 	
 	Starting State:
 		Num 	Observation			Value
-		0		Bird y				40
-		1		Safe Space height	100
-		2		Safe Space X		screeen width + 20 as it is off screen
-		3		Safe Space Y		random seeded number between 50 and screen size - 60
+		0		Bird y				40		
+		1		Safe Space X		screeen width + 20 as it is off screen
+		2		Safe Space Y		random seeded number between 50 and screen size - 60
 	
 	Episode Termination:
 		Bird falls to the ground
@@ -57,12 +55,12 @@ class FlappyBird(gym.Env):
 		self.bird = [70, self.screen_size[1]//2, 10, 10]
 		
 		high = np.array([
-			self.screen_size[1],
-			self.screen_size[1] - 60,
-			self.screen_size[0] + 20
+			self.screen_size[1],			
+			self.screen_size[1] + 20,
+			self.screen_size[0] - 60
 		])
 		low = np.array([
-			0, 50, 0
+			0, 0, 50
 		])
 
 		self.action_space = spaces.Discrete(2)
@@ -91,7 +89,7 @@ class FlappyBird(gym.Env):
 		if action == 1:
 			self.bird[1] = self.bird[1] + 20
 
-		self.state = (self.bird[1], self.safe_space[3], self.safe_space[0], self.safe_space[1])		
+		self.state = (self.bird[1], self.safe_space[0], self.safe_space[1])		
 		done = self.bird[1] < 0 or self.bird[1] > self.screen_size[1]
 		in_safe_space = (self.bird[0] < self.safe_space[0] + self.safe_space[2] and
 			self.bird[0] + self.bird[2] > self.safe_space[0] and
@@ -116,7 +114,7 @@ class FlappyBird(gym.Env):
 		return np.array(self.state), reward, done, {}
 	
 	def reset(self):
-		self.state = self.np_random.uniform(low=0.05, high=0.05, size=(4,))
+		self.state = self.np_random.uniform(low=0.05, high=0.05, size=(3,))
 		self.steps_beyond_done = None
 		self.bird[1] = self.screen_size[1]//2
 		self.reset_pipe()
