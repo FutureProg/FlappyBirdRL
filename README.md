@@ -1,5 +1,5 @@
 # Flappy Bird RL
-![Flappy Bird Screenshot](./screenshot.png | width=200)
+<img src="./screenshot.png" width="250"/>
 
 Simple project to use reinforcement learning to teach an AI to play flappy bird. You can run the AI using `python run.py` with **python version 3**.
 
