@@ -94,7 +94,7 @@ class FlappyBird(gym.Env):
 		in_safe_space = (self.bird[0] < self.safe_space[0] + self.safe_space[2] and
 			self.bird[0] + self.bird[2] > self.safe_space[0] and
 			self.bird[1] < self.safe_space[1] + self.safe_space[3]/2 and
-			self.bird[1] + self.bird[3] < self.safe_space[1] + self.safe_space[3])	
+			self.bird[1] + self.bird[3] > self.safe_space[1] - self.safe_space[3]/2)	
 		done = done or (not in_safe_space and self.bird[0] < self.safe_space[0] + self.safe_space[2] and self.bird[0] + self.bird[2] > self.safe_space[0])
 
 		if self.safe_space[0] + self.safe_space[2]*2 <= 0:
@@ -130,7 +130,7 @@ class FlappyBird(gym.Env):
 			pipe = rendering.FilledPolygon([(l,b), (l, t), (r, t), (r, b)])
 			self.pipetrans = rendering.Transform()
 			pipe.add_attr(self.pipetrans)
-			pipe.set_color(0,0,0)
+			pipe.set_color(0,1,0)
 			self.viewer.add_geom(pipe)
 
 			l,r,t,b = -self.safe_space[2]/2, self.safe_space[2]/2, -self.safe_space[3]/2, self.safe_space[3]/2
