@@ -16,10 +16,11 @@ class FlappyBird(gym.Env):
 
 	Observation:
 		Type: Box(2)
-		Num			Observation		Min					Max
-		0			Bird y			0					screen height
-		1			Pipe height		50					screen height - 60
-		2			Pipe x			0					screen width + 20
+		Num			Observation			Min					Max
+		0			Bird y				0					screen height
+		1			Safe Space height	100					100
+		2			Safe Space X		0					screen width + 20
+		3 			Safe Space Y		50					screen size - 60
 
 	Actions:
 		Type: Discrete(2)
@@ -33,13 +34,14 @@ class FlappyBird(gym.Env):
 	Starting State:
 		Num 	Observation			Value
 		0		Bird y				40
-		1		Pipe height			Random seeded number within bounds
-		2		Pipe x				screeen width + 20 as it is off screen
+		1		Safe Space height	100
+		2		Safe Space X		screeen width + 20 as it is off screen
+		3		Safe Space Y		random seeded number between 50 and screen size - 60
 	
 	Episode Termination:
 		Bird falls to the ground
 		Bird flies up and off the screen
-		Bird collides with pipe
+		Bird collides with pipe (hits under or above the safe zone)
 		Episode length > 400	
 	"""
 
@@ -89,7 +91,7 @@ class FlappyBird(gym.Env):
 		if action == 1:
 			self.bird[1] = self.bird[1] + 20
 
-		self.state = (self.bird[1], self.safe_space[3], self.safe_space[0])		
+		self.state = (self.bird[1], self.safe_space[3], self.safe_space[0], self.safe_space[1])		
 		done = self.bird[1] < 0 or self.bird[1] > self.screen_size[1]
 		in_safe_space = (self.bird[0] < self.safe_space[0] + self.safe_space[2] and
 			self.bird[0] + self.bird[2] > self.safe_space[0] and
@@ -114,7 +116,7 @@ class FlappyBird(gym.Env):
 		return np.array(self.state), reward, done, {}
 	
 	def reset(self):
-		self.state = self.np_random.uniform(low=0.05, high=0.05, size=(3,))
+		self.state = self.np_random.uniform(low=0.05, high=0.05, size=(4,))
 		self.steps_beyond_done = None
 		self.bird[1] = self.screen_size[1]//2
 		self.reset_pipe()
