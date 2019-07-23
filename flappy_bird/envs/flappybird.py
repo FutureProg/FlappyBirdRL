@@ -76,29 +76,32 @@ class FlappyBird(gym.Env):
 		return [seed]
 	
 	def reset_pipe(self):
-		height = np.random.randint(50, self.screen_size[1]-60)
-		self.pipe = [self.screen_size[0] + 20, height/2, 20, height]
+		height = 100
+		y = np.random.randint(50, self.screen_size[1]-60)		
+		self.safe_space = [self.screen_size[0] + 20, y, 20, height]
 
 
 	def step(self, action):
 		assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
 		state = self.state
 		self.bird[1] = self.bird[1] - 10
-		self.pipe[0] -= 18
+		self.safe_space[0] -= 18
 		if action == 1:
 			self.bird[1] = self.bird[1] + 20
 
-		self.state = (self.bird[1], self.pipe[3], self.pipe[0])		
+		self.state = (self.bird[1], self.safe_space[3], self.safe_space[0])		
 		done = self.bird[1] < 0 or self.bird[1] > self.screen_size[1]
-		done = done or (self.bird[0] < self.pipe[0] + self.pipe[2] and
-			self.bird[0] + self.bird[2] > self.pipe[0] and
-			self.bird[1] < self.pipe[1] + self.pipe[3]/2)		
+		in_safe_space = (self.bird[0] < self.safe_space[0] + self.safe_space[2] and
+			self.bird[0] + self.bird[2] > self.safe_space[0] and
+			self.bird[1] < self.safe_space[1] + self.safe_space[3]/2 and
+			self.bird[1] + self.bird[3] < self.safe_space[1] + self.safe_space[3])	
+		done = done or (not in_safe_space and self.bird[0] < self.safe_space[0] + self.safe_space[2] and self.bird[0] + self.bird[2] > self.safe_space[0])
 
-		if self.pipe[0] + self.pipe[2]*2 <= 0:
+		if self.safe_space[0] + self.safe_space[2]*2 <= 0:
 			self.reset_pipe()
 
 		if not done:			
-			reward = 1.0
+			reward = 1.0 if in_safe_space else 3.0
 		elif self.steps_beyond_done is None:			
 			self.steps_beyond_done = 0
 			reward = 0.0
@@ -122,11 +125,20 @@ class FlappyBird(gym.Env):
 		if self.viewer is None:
 			from gym.envs.classic_control import rendering
 			self.viewer = rendering.Viewer(self.screen_size[0], self.screen_size[1])
-			l,r,t,b = -self.pipe[2]/2, self.pipe[2]/2, -self.pipe[3]/2, self.pipe[3]/2
+
+			l,r,t,b = -self.safe_space[2], self.safe_space[2], 0, self.screen_size[1]
 			pipe = rendering.FilledPolygon([(l,b), (l, t), (r, t), (r, b)])
 			self.pipetrans = rendering.Transform()
 			pipe.add_attr(self.pipetrans)
+			pipe.set_color(0,0,0)
 			self.viewer.add_geom(pipe)
+
+			l,r,t,b = -self.safe_space[2]/2, self.safe_space[2]/2, -self.safe_space[3]/2, self.safe_space[3]/2
+			safe_space = rendering.FilledPolygon([(l,b), (l, t), (r, t), (r, b)])
+			self.safetrans = rendering.Transform()
+			safe_space.add_attr(self.safetrans)
+			safe_space.set_color(1, 1, 1)
+			self.viewer.add_geom(safe_space)
 
 			l,r,t,b = -self.bird[2]/2, self.bird[2]/2, -self.bird[3]/2, self.bird[3]/2
 			bird = rendering.FilledPolygon([(l,b), (l, t), (r, t), (r, b)])
@@ -137,14 +149,17 @@ class FlappyBird(gym.Env):
 			
 			self._bird_geom = bird
 			self._pipe_geom = pipe
+			self._safe_geom = safe_space
 		
 		if self.state is None: 
 			print("Return NONE")
 			return None
 		
-		l,r,t,b = -self.pipe[2]/2, self.pipe[2]/2, -self.pipe[3]/2, self.pipe[3]/2
-		self.pipetrans.set_translation(self.pipe[0], self.pipe[1])
-		self._pipe_geom.v = [(l,b), (l,t), (r,t), (r,b)]
+		l,r,t,b = -self.safe_space[2]/2, self.safe_space[2]/2, -self.safe_space[3]/2, self.safe_space[3]/2
+		self.pipetrans.set_translation(self.safe_space[0], self.screen_size[1])
+		self.safetrans.set_translation(self.safe_space[0], self.safe_space[1])
+		self._safe_geom.v = [(l,b), (l,t), (r,t), (r,b)]
+		self._pipe_geom.v = [(l,self.screen_size[1]), (l,-self.screen_size[1]), (r,-self.screen_size[1]), (r,self.screen_size[1])]
 
 		self.birdtrans.set_translation(self.bird[0], self.bird[1])
 
